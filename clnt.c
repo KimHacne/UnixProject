@@ -18,7 +18,7 @@ void menu();
 char name[NAME_SIZE]= {NULL}; //자신의 이름
 char msg[BUF_SIZE] = {NULL};
 
-int other = 0;  //-1 일시 상대 존재 X
+int other = 0;  // 0->초기상태, 1-> 존재 , 2-> 상대 존재 X
 int recvName = 0;
 int canWrite = 1;
 	
@@ -55,6 +55,8 @@ int main(int argc, char *argv[])
 		write(sock, name, NAME_SIZE);  // 이름 서버로 보냄
 		printf("\n서버에 연결되었습니다.\n");
 	}
+	
+	menu();
 
 	pthread_create(&t_send, NULL, send_msg, (void*)&sock); //send_msg 실행 스레드 생성
 	pthread_create(&t_recv, NULL, recv_msg, (void*)&sock);	//recv_msg 실행 스레드 생성
@@ -116,9 +118,11 @@ void * send_msg(void * a)   // send 스레드 함수
 			while(other == 0){  //상대 있을 때 까지 sleep
 				sleep(1);
 			}
-			if (other == -1 ) {	//클라이언트가 없음
+
+			if (other == 2 ) {	//클라이언트가 없음
 				printf("유저가 존재하지 않습니다. \n");
 				other = 0;
+				menu();
 				continue;
 			}
 
@@ -175,7 +179,10 @@ void * recv_msg(void * a)   // read thread main
 
 	char sig_recv[BUF_SIZE] = {"send file(s->c)"};  //서버에서 파일 보낼때 받는 신호
 	char sig_finish[BUF_SIZE] = {"finish(s->c)"};		//서버에서 파일 전송 완료시 보내는 신호
-	
+	char sig_nouser[BUF_SIZE] = {"No user"};  //유저 존재X 신호
+	char sig_ongoing[BUF_SIZE] ={"On going"}; //진행 신호 
+	char sig_userfull[BUF_SIZE] ={"user full"}; //유저 가득참 신호
+
 	int str_len = 0;
 	int file_size = 0;
 
@@ -222,16 +229,16 @@ void * recv_msg(void * a)   // read thread main
 			printf("파일 수신이 끝났습니다. \n");
 
 		}
-		else if(strcmp(name_msg, "On going") == 0) { //서버로부터 진행 가능할때 받는신호
+		else if(strcmp(name_msg, sig_ongoing) == 0) { //서버로부터 진행 가능할때 받는신호
 
 			other = 1;
 
 		}
-		else if(strcmp(name_msg, "No user") == 0) { //
+		else if(strcmp(name_msg, sig_nouser) == 0) { //
 
-			other = -1; 
+			other = 2; 
 		}
-		else if(!strcmp(name_msg, "user full")) {
+		else if(!strcmp(name_msg, sig_userfull)) {
 			printf("사용자가 가득찼습니다..\n");
 			exit(0);
 		}
