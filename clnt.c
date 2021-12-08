@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	  
 	if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1)
 	{
-		error_handling("connect() error");
+		error("connect() error");
 	}else{
 		write(sock, name, NAME_SIZE);  // 이름 서버로 보냄
 		printf("\n서버에 연결되었습니다.\n");
