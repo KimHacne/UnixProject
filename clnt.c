@@ -106,6 +106,7 @@ void * send_msg(void * a)   // send 스레드 함수
 			
 			if ((f = fopen(myfile, "rb") == NULL)) {		//파일 존재여부 확인
 				printf("파일이 존재하지 않습니다.\n");
+				menu();
 				continue;
 			}
 
@@ -259,7 +260,6 @@ void menu() {
 	printf("0.프로그램 종료\n");
 	printf("1.파일 보내기\n");
 	printf("2.메뉴\n\n");
-	printf("else  유저에게 메세지 전송 \n");
 	printf("==============================\n");
 	printf(" >> ");
 }
