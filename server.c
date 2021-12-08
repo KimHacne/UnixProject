@@ -34,7 +34,8 @@ int main(int argc, char* argv[]) {
 	int serv_sock, clnt_sock, i; //서버소켓, 클라소켓, 인덱스
 	pthread_t tid; //쓰레드
 	pthread_mutex_init(&mutex, NULL); //뮤텍스 초기화
-	
+	char sig_userfull[BUF_SIZE] ={"user full"};
+
 	serv_sock = socket(PF_INET, SOCK_STREAM, 0); //IP , TCP
 
 	if (argc < 2) { //포트 입력 안할시
@@ -62,7 +63,7 @@ int main(int argc, char* argv[]) {
 		
 		if (now_clnt >= MAX_CLNT) { //2명 넘어가면
 			printf("%d 클라이언트 접속 실패\n", clnt_sock);
-			write(clnt_sock, "user full", BUF_SIZE); //해당 클라이언에게 꽉 찼다고 신호 보냄
+			write(clnt_sock, sig_userfull, BUF_SIZE); //해당 클라이언에게 꽉 찼다고 신호 보냄
 			continue;
 		}
 		//사용자가 동시에 접속할 때 클라이언트 배열에 같이 들어가는거 방지 - 뮤텍스 이용
@@ -97,6 +98,8 @@ void* clnt_handling(void* arg) {
 	//클라 소켓에서 신호를 받아 처리하기 위해
 	char sig_sendfile[BUF_SIZE] = { "send file(c->s)" }; //클라이언트에서 파일전송시 신호
 	char sig_finish[BUF_SIZE] = { "finish(c->s)" }; // 클라이언트에서 파일전송 완료시 신호
+	char sig_nouser[BUF_SIZE] = {"No user"};  //유저 존재하지 않다고 보냄
+	char sig_ongoing[BUF_SIZE] ={"On going"}; //진행 신호
 	
 	char msg[BUF_SIZE] = { NULL }; //메세지 담을 버퍼
 	char file[BUF_SIZE] = { NULL }; //파일 담을 버퍼
@@ -128,12 +131,12 @@ void* clnt_handling(void* arg) {
 			}
 
 			if (exist == 0) { //존재하지 않을 때
-				write(clnt_sock, "No user", BUF_SIZE);   //클라이언트에게 NO user 신호 보냄
+				write(clnt_sock, sig_nouser, BUF_SIZE);   //클라이언트에게 NO user 신호 보냄
 				pthread_mutex_unlock(&mutex);
 				continue;
 			}
 			else if (exist == 1) { //존재하면 
-				write(clnt_sock, "On going", BUF_SIZE);  //클라이언트에게 On going 신호 보냄
+				write(clnt_sock, sig_ongoing, BUF_SIZE);  //클라이언트에게 On going 신호 보냄
 			}
 
 
