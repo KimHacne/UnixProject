@@ -10,8 +10,8 @@
 #define NAME_SIZE 10
 
 	
-void * send(void * arg);
-void * recv(void * arg);
+void * send_msg(void * a);
+void * recv_msg(void * a);
 void error(char * msg);
 void menu();
 
@@ -38,10 +38,10 @@ int main(int argc, char *argv[])
 	struct sockaddr_in serv_addr;  //서버 구조체
 	int sock = socket(PF_INET, SOCK_STREAM, 0); //IP , TCP
 
-	pthread_t t_send , t_recv; //send실행 스레드와 recv실행 스레드;
+	pthread_t t_send , t_recv; //send_msg실행 스레드와 recv_msg실행 스레드;
 	void * thread_return;
 
-	pthread_mutex_init(&mutx, NULL);
+	pthread_mutex_init(&mutex, NULL);
 		
 	memset(&serv_addr, 0, sizeof(serv_addr));
 	serv_addr.sin_family=AF_INET;
@@ -56,17 +56,17 @@ int main(int argc, char *argv[])
 		printf("\n서버에 연결되었습니다.\n");
 	}
 
-	pthread_create(&t_send, NULL, send, (void*)&sock); //send 실행 스레드 생성
-	pthread_create(&t_recv, NULL, recv, (void*)&sock);	//recv 실행 스레드 생성
-	pthread_join(snd_thread, &thread_return);		
-	pthread_join(rcv_thread, &thread_return);		//둘이 묶어서 관리
+	pthread_create(&t_send, NULL, send_msg, (void*)&sock); //send_msg 실행 스레드 생성
+	pthread_create(&t_recv, NULL, recv_msg, (void*)&sock);	//recv_msg 실행 스레드 생성
+	pthread_join(t_send, &thread_return);		
+	pthread_join(t_recv, &thread_return);		//둘이 묶어서 관리
 	
 	close(sock);  
 	return 0;
 }
-void * send(void * sock)   // send 스레드 함수
+void * send_msg(void * a)   // send 스레드 함수
 {
-	int sock=*((int*)sock);
+	int sock=*((int*)a);
 	int file_size = 0;
 
 	char name_msg[NAME_SIZE+BUF_SIZE] = {NULL};
@@ -84,7 +84,7 @@ void * send(void * sock)   // send 스레드 함수
 
 		fgets(msg, BUF_SIZE, stdin);
 
-		else if(!strcmp(msg,"0\n")) 
+		if(!strcmp(msg,"0\n")) 
 		{
 			close(sock);
 			exit(0);
@@ -102,7 +102,7 @@ void * send(void * sock)   // send 스레드 함수
 			scanf("%s", myfile);
 			
 			
-			if ((f = fopen(myfile, "rb") == NULL) {		//파일 존재여부 확인
+			if ((f = fopen(myfile, "rb") == NULL)) {		//파일 존재여부 확인
 				printf("파일이 존재하지 않습니다.\n");
 				continue;
 			}
@@ -164,19 +164,15 @@ void * send(void * sock)   // send 스레드 함수
 	}
 	return NULL;
 }
-void * recv(void * arg)   // read thread main
+void * recv(void * a)   // read thread main
 {
-	int sock=*((int*)arg);
+	int sock=*((int*)a);
 
 	char name_msg[BUF_SIZE] = {NULL};
 	char context[BUF_SIZE] = {NULL};
 
 	char sig_recv[BUF_SIZE] = {"send file(s->c)"};  //서버에서 파일 보낼때 받는 신호
 	char sig_finish[BUF_SIZE] = {"finish(s->c)"};		//서버에서 파일 전송 완료시 보내는 신호
-
-	const char yescl_msg[BUF_SIZE] = {"[continue_ok_nowgo]"};
-	const char noConnect[BUF_SIZE] = {"too many users. sorry"};
-	
 	
 	int str_len = 0;
 	int file_size = 0;
@@ -222,8 +218,6 @@ void * recv(void * arg)   // read thread main
 			fclose(f);
 			
 			printf("파일 수신이 끝났습니다. \n");
-			// ㄴ send_msg 쓰레드의 활동 재개
-
 
 		}
 		else if(strcmp(name_msg, "On going") == 0) { //서버로부터 진행 가능할때 받는신호
