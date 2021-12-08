@@ -101,8 +101,9 @@ void* clnt_handling(void* arg) {
 	char msg[BUF_SIZE] = { NULL }; //메세지 담을 버퍼
 	char file[BUF_SIZE] = { NULL }; //파일 담을 버퍼
 
-	while ((str_len = read(clnt_sock, msg, BUF_SIZE) != 0) //클라소켓에서 신호를 읽어옴
+	while ((str_len = read(clnt_sock, msg, BUF_SIZE) != 0))//클라소켓에서 신호를 읽어옴
 	{ 
+
 		if (!strcmp(msg, sig_sendfile)) 
 		{
 			int j; //클라이언트 인데스
@@ -151,7 +152,8 @@ void* clnt_handling(void* arg) {
 			pthread_mutex_unlock(&mutex);
 			printf("파일 전송 완료\n");
 
-		}else {
+		}else 
+		{
 			printf("메세지 전송됨\n");
 			send_msg(msg, str_len);
 		}
@@ -169,12 +171,14 @@ void* clnt_handling(void* arg) {
 			break;
 		}
 	}
+
 	now_clnt--;
 	pthread_mutex_unlock(&mutex);
 
 	close(clnt_sock);
 	return NULL;
 }
+
 
 
 void send_msg(char* msg, int len) { 
@@ -185,6 +189,7 @@ void send_msg(char* msg, int len) {
 	}
 	pthread_mutex_unlock(&mutex);
 }
+
 void error(char* msg) {
 	fputs(msg, stderr);
 	fputs('\n', stderr);
