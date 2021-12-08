@@ -27,7 +27,7 @@ void send_msg(char* msg, int len); //클라이언트들에게 메세지 전송
 void error(char* msg); //error처리
 void* clnt_handling(void* arg); //클라이언트 처리 스레드 함수
 
-int mai(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 	
 	struct sockaddr_in clnt_addr, serv_addr;
 	int clnt_addr_size;			//클라 주소 크기
