@@ -164,7 +164,7 @@ void * send_msg(void * a)   // send 스레드 함수
 	}
 	return NULL;
 }
-void * recv(void * a)   // read thread main
+void * recv_msg(void * a)   // read thread main
 {
 	int sock=*((int*)a);
 
@@ -189,7 +189,7 @@ void * recv(void * a)   // read thread main
 			canWrite = 0;  //쓰기모드 OFF
 
 			printf("파일 수신 대기중");
-			read(sock, &fils_size, sizeof(int));
+			read(sock, &file_size, sizeof(int));
 			printf("파일크기는 %d 입니다.\n", file_size); //파일 크기 알려주고 받을지 물어봄
 			printf("수신할 파일 이름을 설정해 주세요 >> ");
 			
