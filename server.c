@@ -96,7 +96,7 @@ void* clnt_handling(void* arg) {
 
 	//클라 소켓에서 신호를 받아 처리하기 위해
 	char sig_sendfile[BUF_SIZE] = { "send file(c->s)" }; //클라이언트에서 파일전송시 신호
-	char sig_finisih[BUF_SIZE] = { "finish(c->s)" }; // 클라이언트에서 파일전송 완료시 신호
+	char sig_finish[BUF_SIZE] = { "finish(c->s)" }; // 클라이언트에서 파일전송 완료시 신호
 	
 	char msg[BUF_SIZE] = { NULL }; //메세지 담을 버퍼
 	char file[BUF_SIZE] = { NULL }; //파일 담을 버퍼
@@ -139,7 +139,7 @@ void* clnt_handling(void* arg) {
 
 			write(clnt_socks[dest], "send file(s->c)", BUF_SIZE); //클라이언트에게 send 신호 보냄
 			read(clnt_sock, &file_size, sizeof(int)); //파일 사이즈 받음
-			write(clnt_sock[dest], &file_size, sizeof(int)); //파일 크기정보 전송
+			write(clnt_socks[dest], &file_size, sizeof(int)); //파일 크기정보 전송
 
 			while (1) {
 				read(clnt_sock, file, BUF_SIZE);
