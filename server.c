@@ -23,7 +23,7 @@ pthread_mutex_t mutex;
 
 int now_clnt = 0; //서버에 접속한 클라이언트 수
 
-void send(char* msg, int len); //클라이언트들에게 메세지 전송
+void send_msg(char* msg, int len); //클라이언트들에게 메세지 전송
 void error(char* msg); //error처리
 void* clnt_handling(void* arg); //클라이언트 처리 스레드 함수
 
@@ -68,7 +68,7 @@ int mani(int argc, char* argv[]) {
 		//사용자가 동시에 접속할 때 클라이언트 배열에 같이 들어가는거 방지 - 뮤텍스 이용
 		pthread_mutex_lock(&mutex);  //뮤텍스 락
 		clnt_socks[now_clnt] = clnt_sock;  //클라이언트 를 차례대로 배열에 넣어줌
-		read(clnt_sock, clnt_name, NAME); //클라이언트 이름 배정	
+		read(clnt_sock, clnt_name, NAME_SIZE); //클라이언트 이름 배정	
 		strcpy(clnt_names[now_clnt], clnt_name); //클라이언트 이름들 배열에 저장
 		pthread_mutex_unlock(&mutex); // 뮤텍스 락 해제
 
@@ -147,19 +147,13 @@ void* clnt_handling(void* arg) {
 				
 				write(clnt_socks[dest], file, BUF_SIZE);
 			}
-
 			write(clnt_socks[dest], "finish(s->c)", BUF_SIZE); //클라이언트에게 파일 전송완료 신호 보냄
-
 			pthread_mutex_unlock(&mutex);
-
 			printf("파일 전송 완료\n");
 
-
-		}
-		
-		else {
+		}else {
 			printf("메세지 전송됨\n");
-			send(msg, str_len);
+			send_msg(msg, str_len);
 		}
 	}
 
@@ -180,9 +174,10 @@ void* clnt_handling(void* arg) {
 
 	close(clnt_sock);
 	return NULL;
-
 }
-void send(char* msg, int len) { 
+
+
+void send_msg(char* msg, int len) { 
 	int i;
 	pthread_mutex_lock(&mutex);
 	for (i = 0; i < now_clnt; i++) {
