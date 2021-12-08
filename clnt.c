@@ -80,7 +80,7 @@ void * send_msg(void * a)   // send 스레드 함수
 			sleep(1);
 		}
 
-		menu();
+	
 
 		fgets(msg, BUF_SIZE, stdin);
 
@@ -145,12 +145,14 @@ void * send_msg(void * a)   // send 스레드 함수
 
 			printf("파일 전송을 완료하였습니다. \n");
 			other = 0;
+		}else if(!strcmp(msg,"2\n")){
+			menu();
 		}
 		else if(recvName == 1) { //받는 파일 이름 설정경우
 			if(strcmp(msg, "\n")) {
 				recvName = 0;
 			}
-		} 
+		}
 		else  //메세지 보내기
 		{
 			strcpy(text, "\n");
@@ -247,8 +249,10 @@ void error(char *msg)
 }
 void menu() {
 	printf("\n==============================\n");
-	printf("1.파일 보내기\n");
 	printf("0.프로그램 종료\n");
+	printf("1.파일 보내기\n");
+	printf("2.메뉴\n\n");
+	printf("else  유저에게 메세지 전송 \n");
 	printf("==============================\n");
 	printf(" >> ");
 }
