@@ -28,20 +28,23 @@ void error(char* msg); //error처리
 void* clnt_handling(void* arg); //클라이언트 처리 스레드 함수
 
 int main(int argc, char* argv[]) {
-	
-	struct sockaddr_in clnt_addr, serv_addr;
-	int clnt_addr_size;			//클라 주소 크기
-	int serv_sock, clnt_sock, i; //서버소켓, 클라소켓, 인덱스
-	pthread_t tid; //쓰레드
-	pthread_mutex_init(&mutex, NULL); //뮤텍스 초기화
-	char sig_userfull[BUF_SIZE] ={"user full"};
-
-	serv_sock = socket(PF_INET, SOCK_STREAM, 0); //IP , TCP
 
 	if (argc < 2) { //포트 입력 안할시
 		printf("Usage : %s <port>\n", argv[0]);
 		return 0;
 	}
+	
+	struct sockaddr_in clnt_addr, serv_addr;
+	int serv_sock, clnt_sock, i; //서버소켓, 클라소켓, 인덱스
+	int clnt_size;			//클라 주소 크기
+	
+	
+	pthread_t tid; //쓰레드
+	pthread_mutex_init(&mutex, NULL); //뮤텍스 초기화
+	char sig_userfull[BUF_SIZE] ={"user full"};
+	
+	serv_sock = socket(PF_INET, SOCK_STREAM, 0); //IP , TCP
+
 												 
 	//서버 구조체 설정
 	memset(&serv_addr, 0, sizeof(serv_addr)); //서버주소 초기화
@@ -58,14 +61,15 @@ int main(int argc, char* argv[]) {
 		error("listen() error");
 
 	while (1) {
-		clnt_addr_size = sizeof(clnt_addr); //클라이언트 주소 크기 설정
-		clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_addr, &clnt_addr_size); //클라소켓 접속 요청 받음
+		clnt_size = sizeof(clnt_addr); //클라이언트 주소 크기 설정
+		clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_addr, &clnt_size); //클라소켓 접속 요청 받음
 		
 		if (now_clnt >= MAX_CLNT) { //2명 넘어가면
 			printf("%d 클라이언트 접속 실패\n", clnt_sock);
 			write(clnt_sock, sig_userfull, BUF_SIZE); //해당 클라이언에게 꽉 찼다고 신호 보냄
 			continue;
 		}
+
 		//사용자가 동시에 접속할 때 클라이언트 배열에 같이 들어가는거 방지 - 뮤텍스 이용
 		pthread_mutex_lock(&mutex);  //뮤텍스 락
 		clnt_socks[now_clnt] = clnt_sock;  //클라이언트 를 차례대로 배열에 넣어줌
@@ -114,34 +118,36 @@ void* clnt_handling(void* arg) {
 			int dest = NULL;  //전송할 소켓 인덱스
 			char cname[NAME_SIZE] = { NULL }; //클라이언트 이름
 			
-			read(clnt_sock, cname, NAME_SIZE);
+			read(clnt_sock, cname, NAME_SIZE); //이름 받아옴
 
 			pthread_mutex_lock(&mutex); //동시에 못보내게
 
 			for (j = 0; j < now_clnt; j++) { //클라 이름 존재하는지 체크
 				if (!strcmp(cname, clnt_names[j])) {
-					exist = 1;  //존재함
+					exist = 0;  //존재함
 					dest = j;
 					break;
 				}
 				else if (j == now_clnt - 1) {
-					exist = 0; //존재하지 않음
+					exist = 1; //존재하지 않음
 					break;
 				}
 			}
 
-			if (exist == 0) { //존재하지 않을 때
+			if (exist == 1) { //존재하지 않을 때
 				write(clnt_sock, sig_nouser, BUF_SIZE);   //클라이언트에게 NO user 신호 보냄
 				pthread_mutex_unlock(&mutex);
 				continue;
 			}
-			else if (exist == 1) { //존재하면 
+			else if (exist == 0) { //존재하면 
 				write(clnt_sock, sig_ongoing, BUF_SIZE);  //클라이언트에게 On going 신호 보냄
 			}
 
 
 			write(clnt_socks[dest], "send file(s->c)", BUF_SIZE); //클라이언트에게 send 신호 보냄
 			read(clnt_sock, &file_size, sizeof(int)); //파일 사이즈 받음
+
+			printf("파일크기 -> %d Byte.\n",file_size);
 			write(clnt_socks[dest], &file_size, sizeof(int)); //파일 크기정보 전송
 
 			while (1) {
