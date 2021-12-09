@@ -11,7 +11,7 @@
 
 #define BUF_SIZE 256  
 #define MAX_CLNT 2  //클라이언트 2명만 받음
-#define NAME_SIZE 10 //이름 크기
+#define NAME_SIZE 20 //이름 크기
 
 char clnt_name[NAME_SIZE] = { 0 }; //클라이언트 이름
 char clnt_names[MAX_CLNT][NAME_SIZE] = { 0 }; //클라이언트들의 이름 저장
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 	
 	pthread_t tid; //쓰레드
 	pthread_mutex_init(&mutex, NULL); //뮤텍스 초기화
-	char sig_userfull[BUF_SIZE] ={"user full"};
+	char sig_userfull[BUF_SIZE] ={"user full"}; //유저 가득찬 신호 
 	
 	serv_sock = socket(PF_INET, SOCK_STREAM, 0); //IP , TCP
 
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
 		pthread_create(&tid, NULL, clnt_handling, (void*)&clnt_sock); //클라이언트 핸들링 스레드 생성
 		pthread_detach(tid); // 스레드 종료시 자원 해제
 
-		printf("%s >>>>>>> Connected \n", inet_ntoa(clnt_addr.sin_addr)); //연결된 클라이언트 IP출력
+		printf("(%s.%s) >>>>>>> Connected \n",clnt_names[now_clnt], inet_ntoa(clnt_addr.sin_addr)); //연결된 클라이언트 IP출력
 	}
 
 	close(serv_sock);
@@ -114,7 +114,7 @@ void* clnt_handling(void* arg) {
 		if (!strcmp(msg, sig_sendfile)) 
 		{
 			int j; //클라이언트 인데스
-			int exist = 0; //클라이언트 존재하는지 체크 0 -> O, 1 -> X
+			int exist = 0; //클라이언트 존재하는지 체크 플래그 0 -> O, 1 -> X
 			int dest = NULL;  //전송할 소켓 인덱스
 			char cname[NAME_SIZE] = { NULL }; //클라이언트 이름
 			
