@@ -7,7 +7,7 @@
 #include <pthread.h>
 	
 #define BUF_SIZE 256
-#define NAME_SIZE 10
+#define NAME_SIZE 20
 
 	
 void * send_msg(void * a);
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	sprintf(name, "%s", argv[3]); //name 받아옴
+	sprintf(name, "%s", argv[3]); //<name> 받아옴
 
 	struct sockaddr_in serv_addr;  //서버 구조체
 	int sock = socket(PF_INET, SOCK_STREAM, 0); //IP , TCP
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	pthread_t t_send , t_recv; //send_msg실행 스레드와 recv_msg실행 스레드;
 	void * thread_return;
 
-	pthread_mutex_init(&mutex, NULL);
+	//pthread_mutex_init(&mutex, NULL);
 		
 	memset(&serv_addr, 0, sizeof(serv_addr));
 	serv_addr.sin_family=AF_INET;
@@ -56,25 +56,27 @@ int main(int argc, char *argv[])
 		printf("\n서버에 연결되었습니다.\n");
 	}
 	
-	menu();
+	printf("Press 2 to start\n");
 
 	pthread_create(&t_send, NULL, send_msg, (void*)&sock); //send_msg 실행 스레드 생성
 	pthread_create(&t_recv, NULL, recv_msg, (void*)&sock);	//recv_msg 실행 스레드 생성
 	pthread_join(t_send, &thread_return);		
 	pthread_join(t_recv, &thread_return);		//둘이 묶어서 관리
-	
 	close(sock);  
 	return 0;
 }
-void * send_msg(void * a)   // send 스레드 함수
+
+void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아서 입력값에 따라 처리
 {
 	int sock=*((int*)a);
 	int file_size = 0;
 
 	char name_msg[NAME_SIZE+BUF_SIZE] = {NULL};
-	char text[BUF_SIZE] = {NULL};    
-	char chat_log[BUF_SIZE] = {NULL};   
-
+	char text[BUF_SIZE] = {NULL};     //t_msg
+	char chat_log[BUF_SIZE] = {NULL};	//t_name_msg
+	char sig_send[BUF_SIZE] ={"send file(c->s)"};   
+	char sig_finish[BUF_SIZE] = { "finish(c->s)" };
+	//chat noUse[BUF_SIZE] ={NULL};
 
 	while(1) 
 	{
@@ -82,22 +84,21 @@ void * send_msg(void * a)   // send 스레드 함수
 			sleep(1);
 		}
 
-	
+		fgets(msg, BUF_SIZE, stdin); //메세지를 받음
 
-		fgets(msg, BUF_SIZE, stdin);
-
-		if(!strcmp(msg,"0\n")) 
+		if(!strcmp(msg,"0\n")) //프로그램 종료 
 		{
 			close(sock);
 			exit(0);
 		}
-		else if (!strcmp(msg, "1\n"))
+
+		else if (!strcmp(msg, "1\n")) //파일 보내기
 		{
 
 			FILE* f;
 
 			char myfile[BUF_SIZE];  //보낼 파일 경로
-			char who[NAME_SIZE];
+			char who[NAME_SIZE];  //상대 NAME
 			
 
 			printf("보낼 파일의 경로를 입력하세요 >> ");
@@ -110,11 +111,13 @@ void * send_msg(void * a)   // send 스레드 함수
 				continue;
 			}
 
-			write(sock, "send file(c->s)", BUF_SIZE);  //서버에게 파일전송 신호 전달
-
 			printf("(보낼 상대의 ID : ");
 			scanf("%s", who);
+
+
+			write(sock, sig_send, BUF_SIZE);  //서버에게 파일전송 신호 전달
 			write(sock, who, NAME_SIZE);  //상대방 아이디를 전송
+			
 
 			while(other == 0){  //상대 있을 때 까지 sleep
 				sleep(1);
@@ -141,15 +144,17 @@ void * send_msg(void * a)   // send 스레드 함수
 
 			//파일 포인터를 파일의 처음으로 이동시킴
 			fseek(f,0,SEEK_SET);
-			fread(buff,file_size,1,f); //버퍼에 파일 내용 입력
+			fread(buff, file_size, 1, f); //버퍼에 파일 내용 입력
 
 			write(sock, buff, BUF_SIZE); //서버에 파일 내용 보냄
-		
+			write(sock,sig_finish, BUF_SIZE ); //다 보냈다고 알림
+			
+			
 			fclose(f);
 			free(buff);
-
 			printf("파일 전송을 완료하였습니다. \n");
 			other = 0;
+
 		}else if(!strcmp(msg,"2\n")){
 			menu();
 		}
