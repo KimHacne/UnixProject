@@ -130,7 +130,6 @@ void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아�
 
 			write(sock, sig_send, BUF_SIZE);  //서버에게 파일전송 신호 전달
 			write(sock, who, NAME_SIZE);  //상대방 아이디를 전송
-			printf("log1\n");
 
 			while(other == 0){  //상대 있을 때 까지 sleep
 				sleep(1);
@@ -143,25 +142,11 @@ void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아�
 				continue;
 			}
 			
-			printf("log2\n");
-
-			//while(1){
-				//file_end = fread(noUse,1,BUF_SIZE,f_size);
-				//file_size += file_end;
-
-				//if(file_end != BUF_SIZE)
-					//break;
-			//}
-
-			//fclose(f_size);
 			
 			//파일 크기 얻어냄
 			fseek(f_size, 0, SEEK_END); //파일 포인터 끝으로
 			file_size = ftell(f_size);
 			fclose(f_size); // 사이즈 알아내고 닫음
-			printf("log3\n");
-			//char *buff;
-
 			printf("전송 시작 \n파일크기는 %d 입니다.\n", file_size);
 			write(sock, &file_size, sizeof(int)); // 서버에게 파일크기 전송
 			file_size=0;
@@ -262,6 +247,8 @@ void * recv_msg(void * a)   // read thread main
 			
 			
 			canWrite = 1;  //쓰기모드 ON
+			menu();
+
 
 			while(recvName == 1) {  //파일 이름 설정경우
 				sleep(1);
