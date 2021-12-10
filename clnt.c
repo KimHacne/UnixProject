@@ -80,9 +80,10 @@ void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아�
 	int file_end =0;
 
 	char name_msg[NAME_SIZE+BUF_SIZE] = {NULL};
-	char text[BUF_SIZE] = {NULL};     //t_msg
+	char text[BUF_SIZE] = {NULL};     
 	char last_msg[BUF_SIZE] = {NULL};
-	char chat_log[BUF_SIZE] = {NULL};	//t_name_msg
+	char chat_log[BUF_SIZE] = {NULL};	
+	char noUse[BUF_SIZE] = {NULL};
 	char sig_send[BUF_SIZE] ={"send file(c->s)"};   
 	char sig_finish[BUF_SIZE] = { "finish(c->s)" };
 	//chat noUse[BUF_SIZE] ={NULL};
@@ -140,17 +141,25 @@ void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아�
 				menu();
 				continue;
 			}
+			
+			while(1){
+				file_end = fread(noUse,1,BUF_SIZE,f_size);
+				file_size += file_end;
 
+				if(file_end != BUF_SIZE)
+					break;
+			}
+			fclose(f_size);
 			//파일 크기 얻어냄
-			fseek(f_size, 0, SEEK_END); //파일 포인터 끝으로
-			file_size = ftell(f_size);
-			fclose(f_size); // 사이즈 알아내고 닫음
+			//fseek(f_size, 0, SEEK_END); //파일 포인터 끝으로
+			//file_size = ftell(f_size);
+			//fclose(f_size); // 사이즈 알아내고 닫음
 
 			//char *buff;
 
 			printf("전송 시작 \n파일크기는 %d 입니다.\n", file_size);
 			write(sock, &file_size, sizeof(int)); // 서버에게 파일크기 전송
-			
+			file_size=0;
 
 			//파일 크기  + 1바이트 만큼 동적 메모리 할당 후 0으로 초기화
 			//buff = malloc(file_size + 1);
