@@ -155,7 +155,7 @@ void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아�
 
 			//fclose(f_size);
 			
-			파일 크기 얻어냄
+			//파일 크기 얻어냄
 			fseek(f_size, 0, SEEK_END); //파일 포인터 끝으로
 			file_size = ftell(f_size);
 			fclose(f_size); // 사이즈 알아내고 닫음
