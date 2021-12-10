@@ -41,6 +41,8 @@ int main(int argc, char* argv[]) {
 	
 	pthread_t tid; //쓰레드
 	pthread_mutex_init(&mutex, NULL); //뮤텍스 초기화
+
+
 	char sig_userfull[BUF_SIZE] ={"user full"}; //유저 가득찬 신호 
 	
 	serv_sock = socket(PF_INET, SOCK_STREAM, 0); //IP , TCP

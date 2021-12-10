@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아서 입력값에 따라 처리
 {
 	int sock=*((int*)a);
-	size_t file_size =0;
+	int file_size =0;
 	int file_length =0;
 	int file_end =0;
 
@@ -128,7 +128,8 @@ void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아�
 
 			write(sock, sig_send, BUF_SIZE);  //서버에게 파일전송 신호 전달
 			write(sock, who, NAME_SIZE);  //상대방 아이디를 전송
-			
+			printf("log1\n");
+
 			while(other == 0){  //상대 있을 때 까지 sleep
 				sleep(1);
 			}
