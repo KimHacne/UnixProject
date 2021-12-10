@@ -247,8 +247,8 @@ void * recv_msg(void * a)   // read thread main
 			
 			
 			canWrite = 1;  //쓰기모드 ON
-			menu();
 
+			printf("\n");
 
 			while(recvName == 1) {  //파일 이름 설정경우
 				sleep(1);
@@ -272,6 +272,7 @@ void * recv_msg(void * a)   // read thread main
 			fclose(f);
 			
 			printf("파일 수신이 끝났습니다. \n");
+			menu();
 			//send_msg 스레드 재가동
 
 		}
