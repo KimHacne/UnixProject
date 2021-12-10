@@ -13,8 +13,8 @@
 #define MAX_CLNT 2  //클라이언트 2명만 받음
 #define NAME_SIZE 20 //이름 크기
 
-char clnt_name[NAME_SIZE] = { 0 }; //클라이언트 이름
-char clnt_names[MAX_CLNT][NAME_SIZE] = { 0 }; //클라이언트들의 이름 저장
+char clnt_name[NAME_SIZE] = { NULL }; //클라이언트 이름
+char clnt_names[MAX_CLNT][NAME_SIZE] = { NULL }; //클라이언트들의 이름 저장
 int clnt_socks[MAX_CLNT]; //클라이언트 소켓 배열(2개)
 
 pthread_mutex_t mutex;
