@@ -204,6 +204,7 @@ void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아�
 			fclose(f);
 			//free(buff);
 			printf("파일 전송을 완료하였습니다. \n");
+			menu();
 			other = 0;
 
 		}else if(!strcmp(msg,"2\n")){
@@ -257,7 +258,7 @@ void * recv_msg(void * a)   // read thread main
 			printf("파일 수신 대기중\n");
 			read(sock, &file_size, sizeof(int));
 			printf("파일크기는 %d 입니다.\n", file_size); //파일 크기 알려주고 받을지 물어봄
-			printf("수신할 파일 이름을 설정해 주세요 >> ");
+			printf("파일 이름을 설정해 주세요 >> ");
 			
 			
 			canWrite = 1;  //쓰기모드 ON
