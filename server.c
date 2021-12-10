@@ -165,7 +165,7 @@ void* clnt_handling(void* arg) {
 
 		}else 
 		{
-			printf("메세지 전송됨\n");
+			printf("send msg(c->s)\n");
 			send_msg(msg, str_len);
 		}
 	}
