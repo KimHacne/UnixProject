@@ -118,7 +118,8 @@ void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아�
 			scanf("%s", myfile);
 			
 			
-			if ((f_size = fopen(myfile, "rb") == NULL)) {		//파일 존재여부 확인
+			f_size = fopen(myfile,"rb"); //파일 존재 여부 확인
+			if(f_size == NULL){
 				printf("파일이 존재하지 않습니다.\n");
 				menu();
 				continue;
@@ -143,20 +144,22 @@ void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아�
 			}
 			
 			printf("log2\n");
-			while(1){
-				file_end = fread(noUse,1,BUF_SIZE,f_size);
-				file_size += file_end;
 
-				if(file_end != BUF_SIZE)
-					break;
-			}
-			fclose(f_size);
+			//while(1){
+				//file_end = fread(noUse,1,BUF_SIZE,f_size);
+				//file_size += file_end;
+
+				//if(file_end != BUF_SIZE)
+					//break;
+			//}
+
+			//fclose(f_size);
+			
+			파일 크기 얻어냄
+			fseek(f_size, 0, SEEK_END); //파일 포인터 끝으로
+			file_size = ftell(f_size);
+			fclose(f_size); // 사이즈 알아내고 닫음
 			printf("log3\n");
-			//파일 크기 얻어냄
-			//fseek(f_size, 0, SEEK_END); //파일 포인터 끝으로
-			//file_size = ftell(f_size);
-			//fclose(f_size); // 사이즈 알아내고 닫음
-
 			//char *buff;
 
 			printf("전송 시작 \n파일크기는 %d 입니다.\n", file_size);
@@ -251,7 +254,7 @@ void * recv_msg(void * a)   // read thread main
 
 			canWrite = 0;  //쓰기모드 OFF
 
-			printf("파일 수신 대기중");
+			printf("파일 수신 대기중\n");
 			read(sock, &file_size, sizeof(int));
 			printf("파일크기는 %d 입니다.\n", file_size); //파일 크기 알려주고 받을지 물어봄
 			printf("수신할 파일 이름을 설정해 주세요 >> ");
