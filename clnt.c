@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h> 
+#include <fcntl.h>
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
 #include <pthread.h>
 	
 #define BUF_SIZE 256
@@ -66,13 +69,19 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+
+//참고 https://jackpang.tistory.com/23
+
 void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아서 입력값에 따라 처리
 {
 	int sock=*((int*)a);
-	int file_size = 0;
+	size_t file_size =0;
+	int file_length =0;
+	int file_end =0;
 
 	char name_msg[NAME_SIZE+BUF_SIZE] = {NULL};
 	char text[BUF_SIZE] = {NULL};     //t_msg
+	char last_msg[BUF_SIZE] = {NULL};
 	char chat_log[BUF_SIZE] = {NULL};	//t_name_msg
 	char sig_send[BUF_SIZE] ={"send file(c->s)"};   
 	char sig_finish[BUF_SIZE] = { "finish(c->s)" };
@@ -95,7 +104,10 @@ void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아�
 		else if (!strcmp(msg, "1\n")) //파일 보내기
 		{
 
-			FILE* f;
+			FILE* f;	//전달할 파일
+			FILE* f_size;	//파일 크기 얻어낼 때
+
+			// size_t nsize =0;
 
 			char myfile[BUF_SIZE];  //보낼 파일 경로
 			char who[NAME_SIZE];  //상대 NAME
@@ -105,20 +117,18 @@ void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아�
 			scanf("%s", myfile);
 			
 			
-			if ((f = fopen(myfile, "rb") == NULL)) {		//파일 존재여부 확인
+			if ((f_size = fopen(myfile, "rb") == NULL)) {		//파일 존재여부 확인
 				printf("파일이 존재하지 않습니다.\n");
 				menu();
 				continue;
 			}
 
-			printf("(보낼 상대의 ID : ");
+			printf("보낼 상대의 ID : ");
 			scanf("%s", who);
-
 
 			write(sock, sig_send, BUF_SIZE);  //서버에게 파일전송 신호 전달
 			write(sock, who, NAME_SIZE);  //상대방 아이디를 전송
 			
-
 			while(other == 0){  //상대 있을 때 까지 sleep
 				sleep(1);
 			}
@@ -131,27 +141,53 @@ void * send_msg(void * a)   // send 스레드 함수 : 계속 입력을 받아�
 			}
 
 			//파일 크기 얻어냄
-			fseek(f, 0, SEEK_END); 
-			file_size = ftell(f);
-			char *buff;
+			fseek(f_size, 0, SEEK_END); //파일 포인터 끝으로
+			file_size = ftell(f_size);
+			fclose(f_size); // 사이즈 알아내고 닫음
+
+			//char *buff;
 
 			printf("전송 시작 \n파일크기는 %d 입니다.\n", file_size);
 			write(sock, &file_size, sizeof(int)); // 서버에게 파일크기 전송
+			
 
 			//파일 크기  + 1바이트 만큼 동적 메모리 할당 후 0으로 초기화
-			buff = malloc(file_size + 1);
-			memset(buff,0,file_size + 1);
+			//buff = malloc(file_size + 1);
+			//memset(buff,0,file_size + 1);
+			
+
+			f=fopen(myfile,"rb"); //전달할 파일 
+
+
+			//서버에 파일 내용을 보낸다.
+			while(1){
+				file_length = fread(text,1,BUF_SIZE,f);
+				
+				if(file_length != BUF_SIZE){
+					for(int i=0; i<file_length ;i++){
+						last_msg[i] = text[i];
+					}
+
+					write(sock,last_msg,BUF_SIZE);
+					write(sock,sig_finish,BUF_SIZE);
+
+					break;
+				}
+				write(sock,text,BUF_SIZE);
+			}
+
+
 
 			//파일 포인터를 파일의 처음으로 이동시킴
-			fseek(f,0,SEEK_SET);
-			fread(buff, file_size, 1, f); //버퍼에 파일 내용 입력
+			//fseek(f,0,SEEK_SET);
+			//fread(buff, file_size, 1, f); //버퍼에 파일 내용 입력
 
-			write(sock, buff, BUF_SIZE); //서버에 파일 내용 보냄
-			write(sock,sig_finish, BUF_SIZE ); //다 보냈다고 알림
+			//write(sock, buff, BUF_SIZE); //서버에 파일 내용 보냄
+			//write(sock,sig_finish, BUF_SIZE ); //다 보냈다고 알림
 			
 			
 			fclose(f);
-			free(buff);
+			//free(buff);
 			printf("파일 전송을 완료하였습니다. \n");
 			other = 0;
 
@@ -233,14 +269,15 @@ void * recv_msg(void * a)   // read thread main
 			fclose(f);
 			
 			printf("파일 수신이 끝났습니다. \n");
+			//send_msg 스레드 재가동
 
 		}
-		else if(strcmp(name_msg, sig_ongoing) == 0) { //서버로부터 진행 가능할때 받는신호
+		else if(strcmp(name_msg, sig_ongoing) == 0) { //서버로부터 진행 가능할 때 받는신호
 
 			other = 1;
 
 		}
-		else if(strcmp(name_msg, sig_nouser) == 0) { //
+		else if(strcmp(name_msg, sig_nouser) == 0) { //서버로부터 유저 없을 때 받는 신호
 
 			other = 2; 
 		}
